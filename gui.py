@@ -15,7 +15,7 @@ class InventoryManagementApp:
     
     def __init__(self, root):
         self.root = root
-        self.root.title("📦 Sistema de Gestión de Inventario")
+        self.root.title("Sistema de Gestión de Inventario")
         self.root.geometry("1400x800")
         self.root.resizable(True, True)
         

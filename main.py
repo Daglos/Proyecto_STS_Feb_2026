@@ -12,8 +12,11 @@ import tkinter as tk
 from gui import InventoryManagementApp
 
 def main():
-    """Función principal para iniciar la aplicación"""
     root = tk.Tk()
+    try:
+        root.iconbitmap('app_icon.ico')
+    except:
+        pass
     app = InventoryManagementApp(root)
     root.protocol("WM_DELETE_WINDOW", app.cerrar)
     root.mainloop()
