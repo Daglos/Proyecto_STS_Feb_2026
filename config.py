@@ -3,7 +3,7 @@ DB_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': 'mysql2003d',  # Cambiar con la contraseña de MySQL
+    'password': '12345678',  # Cambiar con la contraseña de MySQL
     'database': 'inventory_management',
     'raise_on_warnings': True
 }

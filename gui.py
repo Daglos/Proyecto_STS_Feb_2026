@@ -20,10 +20,26 @@ class InventoryManagementApp:
         self.root.resizable(True, True)
         
         
+        self.color_primary = "#2563EB"      
+        self.color_secondary = "#10B981"    
+        self.color_danger = "#EF4444"       
+        self.color_warning = "#F59E0B"      
+        self.color_bg = "#F8FAFC"
+        self.color_sc = "#1C1D1D"           
+        self.color_surface = "#FFFFFF"      
+        self.color_text = "#1E293B"         
+        self.color_text_muted = "#64748B"   
+        self.color_border = "#E2E8F0"       
+        
+        # Configurar tema de la aplicación
+        self.root.config(bg=self.color_bg)
+        self._configurar_estilos()
+        
         # Inicializar base de datos
         self.db = DatabaseManager()
         self.report_gen = ReportGenerator()
         self.excel_exporter = ExcelExporter()
+        self.gen_reportes = ReportGenerator()
         
         if not self.db.connect():
             messagebox.showerror("Error", "No se pudo conectar a la base de datos")
@@ -40,19 +56,92 @@ class InventoryManagementApp:
         self.crear_interfaz()
         self.cargar_productos()
     
-    # (Se eliminaron las configuraciones de colores personalizadas)
     
+    def _configurar_estilos(self):
+        """Configurar estilos modernos para todos los widgets"""
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Configurar colores generales
+        style.configure('TFrame', background=self.color_bg)
+        style.configure('TLabel', background=self.color_bg, foreground=self.color_text, 
+                       font=('Segoe UI', 9))
+        style.configure('TLabelframe', background=self.color_bg, foreground=self.color_text,
+                       font=('Segoe UI', 9, 'bold'), padding=2)
+        style.configure('TLabelframe.Label', background=self.color_bg, foreground=self.color_text)
+        style.configure('TEntry', fieldbackground=self.color_surface, foreground=self.color_text,
+                       font=('Segoe UI', 9))
+        style.map('TEntry', fieldbackground=[('focus', '#E0EDFF')])
+        
+        # Estilo para header
+        style.configure('Header.TLabel', background=self.color_bg, foreground=self.color_primary,
+                       font=('Segoe UI', 16, 'bold'))
+        
+        # Estilo para Label
+        style.configure('TLabel', background=self.color_bg, foreground=self.color_text)
+        
+        # Estilo para Stats
+        style.configure('Stats.TLabel', background=self.color_bg, foreground=self.color_text,
+                       font=('Segoe UI', 10))
+        
+        # Botón de Crear (Verde)
+        style.configure('Create.TButton', font=('Segoe UI', 9, 'bold'), padding=8)
+        style.map('Create.TButton',
+                 background=[('!active', self.color_secondary), ('active', '#059669')],
+                 foreground=[('!active', self.color_surface), ('active', self.color_surface)])
+        
+        # Botón de Actualizar (Azul)
+        style.configure('Update.TButton', font=('Segoe UI', 9, 'bold'), padding=8)
+        style.map('Update.TButton',
+                 background=[('!active', self.color_primary), ('active', '#1D4ED8')],
+                 foreground=[('!active', self.color_surface), ('active', self.color_surface)])
+        
+        # Botón de Eliminar (Rojo)
+        style.configure('Delete.TButton', font=('Segoe UI', 9, 'bold'), padding=8)
+        style.map('Delete.TButton',
+                 background=[('!active', self.color_danger), ('active', '#DC2626')],
+                 foreground=[('!active', self.color_surface), ('active', self.color_surface)])
+        
+        # Botón estándar
+        style.configure('TButton', font=('Segoe UI', 9, 'bold'), padding=8)
+        style.map('TButton',
+                 background=[('!active', self.color_primary), ('active', '#1D4ED8')],
+                 foreground=[('!active', self.color_surface), ('active', self.color_surface)])
+        
+        # Combobox 
+        style.configure('TCombobox', fieldbackground=self.color_surface, foreground=self.color_text,
+                       font=('Segoe UI', 9))
+        style.map('TCombobox', fieldbackground=[('focus', '#E0EDFF')])
+        
+        # Treeview
+        style.configure('Treeview', background=self.color_surface, foreground=self.color_text,
+                       fieldbackground=self.color_surface, borderwidth=1, font=('Segoe UI', 9))
+        style.configure('Treeview.Heading', background=self.color_primary, foreground=self.color_surface,
+                       font=('Segoe UI', 9, 'bold'), relief='flat')
+        style.map('Treeview.Heading', background=[('active', '#1D4ED8')])
+        style.map('Treeview', background=[('selected', '#E0EDFF')], foreground=[('selected', self.color_primary)])
+        
+        # Scrollbar
+        style.configure('TScrollbar', background=self.color_sc, troughcolor=self.color_border)
+    
+
     def crear_interfaz(self):
         """Crear la interfaz principal mejorada"""
         # Menú
-        menubar = tk.Menu(self.root)
+        menubar = tk.Menu(self.root, bg=self.color_surface, fg=self.color_text,
+                         activebackground=self.color_primary, activeforeground=self.color_surface,
+                         font=('Segoe UI', 9))
         self.root.config(menu=menubar)
         
-        archivo_menu = tk.Menu(menubar, tearoff=0)
+        archivo_menu = tk.Menu(menubar, bg=self.color_surface, fg=self.color_text,
+                              activebackground=self.color_primary, activeforeground=self.color_surface,
+                              tearoff=0, font=('Segoe UI', 9))
         menubar.add_cascade(label="📁 Archivo", menu=archivo_menu)
         archivo_menu.add_command(label="Salir", command=self.root.quit)
         
-        reportes_menu = tk.Menu(menubar, tearoff=0)
+        reportes_menu = tk.Menu(menubar, bg=self.color_surface, fg=self.color_text,
+                               activebackground=self.color_primary, activeforeground=self.color_surface,
+                               tearoff=0, font=('Segoe UI', 9))
         menubar.add_cascade(label="📊 Reportes", menu=reportes_menu)
         reportes_menu.add_command(label="Inventario", command=self.generar_reporte_inventario)
         reportes_menu.add_command(label="Movimientos", command=self.generar_reporte_movimientos)
@@ -65,91 +154,96 @@ class InventoryManagementApp:
         reportes_menu.add_command(label="Ver Gráficos", command=self.abrir_ventana_graficos)
         reportes_menu.add_command(label="Analizar Excel", command=self.abrir_analizador_excel)
         
-        ayuda_menu = tk.Menu(menubar, tearoff=0)
+        ayuda_menu = tk.Menu(menubar, bg=self.color_surface, fg=self.color_text,
+                            activebackground=self.color_primary, activeforeground=self.color_surface,
+                            tearoff=0, font=('Segoe UI', 9))
         menubar.add_cascade(label="❓ Ayuda", menu=ayuda_menu)
         ayuda_menu.add_command(label="Acerca de", command=self.mostrar_acerca_de)
         
-        # Frame principal
-        main_frame = ttk.Frame(self.root)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
+        # Frame principal con fondo mejorado
+        marco_principal = ttk.Frame(self.root, style='TFrame')
+        marco_principal.pack(fill=tk.BOTH, expand=True, padx=16, pady=16)
         
-        # Encabezado
-        header_frame = ttk.Frame(main_frame)
-        header_frame.pack(fill=tk.X, pady=(0, 15))
+        # Encabezado mejorado
+        marco_encabezado = ttk.Frame(marco_principal)
+        marco_encabezado.pack(fill=tk.X, pady=(0, 20))
         
-        header_label = ttk.Label(header_frame, text="✨ Sistema de Gestión de Inventario", 
+        etiqueta_encabezado = ttk.Label(marco_encabezado, text="📦 Sistema de Gestión de Inventario", 
                                  style='Header.TLabel')
-        header_label.pack(side=tk.LEFT)
+        etiqueta_encabezado.pack(side=tk.LEFT)
         
         # Contenedor principal (3 columnas)
-        container = ttk.Frame(main_frame)
-        container.pack(fill=tk.BOTH, expand=True)
+        contenedor = ttk.Frame(marco_principal)
+        contenedor.pack(fill=tk.BOTH, expand=True)
         
         # Frame izquierdo - Formulario
-        left_frame = ttk.LabelFrame(container, text="📝 Datos del Producto", padding=15)
-        left_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 12), ipady=10)
+        marco_izquierdo = ttk.LabelFrame(contenedor, text="📝 Datos del Producto", padding=18)
+        marco_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(0, 16), ipady=12)
+        marco_izquierdo.config(relief=tk.FLAT)
         
         # Campos del formulario con mejor espaciado
-        labels_values = [
-            ('Nombre:', 'nombre_entry', 25),
-            ('Descripción:', 'descripcion_text', None),
-            ('Cantidad:', 'cantidad_entry', 25),
-            ('Precio Unitario:', 'precio_entry', 25),
-            ('Proveedor:', 'proveedor_entry', 25),
+        etiquetas_valores = [
+            ('Nombre:', 'nombre_entrada', 25),
+            ('Descripción:', 'descripcion_texto', None),
+            ('Cantidad:', 'cantidad_entrada', 25),
+            ('Precio Unitario:', 'precio_entrada', 25),
+            ('Proveedor:', 'proveedor_entrada', 25),
         ]
         
-        row = 0
-        for label_text, attr, width in labels_values:
-            label = ttk.Label(left_frame, text=label_text, style='TLabel')
-            label.grid(row=row, column=0, sticky=tk.W, pady=8, padx=(0, 10))
+        fila = 0
+        for texto_etiqueta, atributo, ancho in etiquetas_valores:
+            etiqueta = ttk.Label(marco_izquierdo, text=texto_etiqueta, style='TLabel')
+            etiqueta.grid(row=fila, column=0, sticky=tk.W, pady=10, padx=(0, 12))
             
-            if attr == 'descripcion_text':
-                text_widget = tk.Text(left_frame, width=25, height=4, font=('Segoe UI', 9), 
-                                      relief=tk.FLAT, borderwidth=2)
-                text_widget.grid(row=row, column=1, pady=8, sticky=tk.EW)
-                setattr(self, attr, text_widget)
+            if atributo == 'descripcion_texto':
+                widget_texto = tk.Text(marco_izquierdo, width=25, height=4, font=('Segoe UI', 9), 
+                                      relief=tk.FLAT, borderwidth=1, bg=self.color_surface,
+                                      fg=self.color_text, insertbackground=self.color_primary)
+                widget_texto.grid(row=fila, column=1, pady=10, sticky=tk.EW)
+                setattr(self, atributo, widget_texto)
             else:
-                entry = ttk.Entry(left_frame, width=width)
-                entry.grid(row=row, column=1, pady=8, sticky=tk.EW)
-                setattr(self, attr, entry)
+                entrada = ttk.Entry(marco_izquierdo, width=ancho)
+                entrada.grid(row=fila, column=1, pady=10, sticky=tk.EW)
+                setattr(self, atributo, entrada)
             
-            row += 1
+            fila += 1
         
-        # Frame de botones principal con mejor diseño
-        button_frame = ttk.Frame(left_frame)
-        button_frame.grid(row=row, column=0, columnspan=2, pady=20, sticky=tk.EW)
         
-        create_btn = ttk.Button(button_frame, text="➕ Crear", command=self.crear_producto, style='Create.TButton')
-        create_btn.pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
+        marco_botones = ttk.Frame(marco_izquierdo)
+        marco_botones.grid(row=fila, column=0, columnspan=2, pady=24, sticky=tk.EW)
         
-        update_btn = ttk.Button(button_frame, text="✏️ Actualizar", command=self.actualizar_producto, style='Update.TButton')
-        update_btn.pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
+        btn_crear = ttk.Button(marco_botones, text="➕ Crear", command=self.crear_producto, style='Create.TButton')
+        btn_crear.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         
-        delete_btn = ttk.Button(button_frame, text="🗑️ Eliminar", command=self.eliminar_producto, style='Delete.TButton')
-        delete_btn.pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
+        btn_actualizar = ttk.Button(marco_botones, text="✏️ Actualizar", command=self.actualizar_producto, style='Update.TButton')
+        btn_actualizar.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         
-        clear_btn = ttk.Button(button_frame, text="🔄 Limpiar", command=self.limpiar_campos)
-        clear_btn.pack(side=tk.LEFT, padx=4, fill=tk.X, expand=True)
+        btn_eliminar = ttk.Button(marco_botones, text="🗑️ Eliminar", command=self.eliminar_producto, style='Delete.TButton')
+        btn_eliminar.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         
-        # Frame derecho - Listado y movimientos
-        right_container = ttk.Frame(container)
-        right_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        btn_limpiar = ttk.Button(marco_botones, text="🔄 Limpiar", command=self.limpiar_campos)
+        btn_limpiar.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
         
-        # Tabla de productos
-        table_frame = ttk.LabelFrame(right_container, text="📦 Productos Registrados", padding=10)
-        table_frame.pack(fill=tk.BOTH, expand=True, padx=(0, 0), pady=(0, 12))
         
-        scroll = ttk.Scrollbar(table_frame)
-        scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        contenedor_derecho = ttk.Frame(contenedor)
+        contenedor_derecho.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        
+        
+        marco_tabla = ttk.LabelFrame(contenedor_derecho, text="📦 Productos Registrados", padding=12)
+        marco_tabla.pack(fill=tk.BOTH, expand=True, padx=(0, 0), pady=(0, 16))
+        marco_tabla.config(relief=tk.FLAT)
+        
+        desplazador = ttk.Scrollbar(marco_tabla)
+        desplazador.pack(side=tk.RIGHT, fill=tk.Y)
         
         self.tree = ttk.Treeview(
-            table_frame,
+            marco_tabla,
             columns=('ID', 'Nombre', 'Cantidad', 'Precio', 'Proveedor'),
             height=15,
-            yscrollcommand=scroll.set,
+            yscrollcommand=desplazador.set,
             show='headings'
         )
-        scroll.config(command=self.tree.yview)
+        desplazador.config(command=self.tree.yview)
         
         # Configurar columnas con mejor ancho
         self.tree.column('ID', anchor=tk.CENTER, width=50)
@@ -169,28 +263,30 @@ class InventoryManagementApp:
         self.tree.bind('<Double-1>', self.cargar_producto_seleccionado)
         
         # Frame de movimientos mejorado
-        mov_frame = ttk.LabelFrame(right_container, text="➡️ Movimiento de Inventario", padding=12)
-        mov_frame.pack(fill=tk.X, pady=(0, 12))
+        marco_movimientos = ttk.LabelFrame(contenedor_derecho, text="➡️ Movimiento de Inventario", padding=14)
+        marco_movimientos.pack(fill=tk.X, pady=(0, 16))
+        marco_movimientos.config(relief=tk.FLAT)
         
-        mov_inner = ttk.Frame(mov_frame)
-        mov_inner.pack(fill=tk.X)
+        marco_mov_interno = ttk.Frame(marco_movimientos)
+        marco_mov_interno.pack(fill=tk.X)
         
-        ttk.Label(mov_inner, text="Tipo:", style='TLabel').pack(side=tk.LEFT, padx=5)
-        self.tipo_mov = ttk.Combobox(mov_inner, values=['📥 Entrada', '📤 Salida'], width=12, state='readonly')
-        self.tipo_mov.pack(side=tk.LEFT, padx=5)
+        ttk.Label(marco_mov_interno, text="Tipo:", style='TLabel').pack(side=tk.LEFT, padx=6)
+        self.tipo_movimiento = ttk.Combobox(marco_mov_interno, values=['📥 Entrada', '📤 Salida'], width=12, state='readonly')
+        self.tipo_movimiento.pack(side=tk.LEFT, padx=6)
         
-        ttk.Label(mov_inner, text="Cantidad:", style='TLabel').pack(side=tk.LEFT, padx=5)
-        self.mov_cantidad = ttk.Entry(mov_inner, width=12)
-        self.mov_cantidad.pack(side=tk.LEFT, padx=5)
+        ttk.Label(marco_mov_interno, text="Cantidad:", style='TLabel').pack(side=tk.LEFT, padx=6)
+        self.cantidad_movimiento = ttk.Entry(marco_mov_interno, width=12)
+        self.cantidad_movimiento.pack(side=tk.LEFT, padx=6)
         
-        ttk.Button(mov_inner, text="✔️ Registrar", command=self.registrar_movimiento).pack(side=tk.LEFT, padx=5)
+        ttk.Button(marco_mov_interno, text="✔️ Registrar", command=self.registrar_movimiento).pack(side=tk.LEFT, padx=6)
         
         # Frame de estadísticas mejorado
-        stats_frame = ttk.LabelFrame(right_container, text="📈 Estadísticas en Tiempo Real", padding=12)
-        stats_frame.pack(fill=tk.X)
+        marco_estadisticas = ttk.LabelFrame(contenedor_derecho, text="📈 Estadísticas en Tiempo Real", padding=14)
+        marco_estadisticas.pack(fill=tk.X)
+        marco_estadisticas.config(relief=tk.FLAT)
         
-        self.stats_label = ttk.Label(stats_frame, text="", style='Stats.TLabel')
-        self.stats_label.pack(fill=tk.X)
+        self.etiqueta_estadisticas = ttk.Label(marco_estadisticas, text="", style='Stats.TLabel')
+        self.etiqueta_estadisticas.pack(fill=tk.X)
         
         self.actualizar_estadisticas()
     
@@ -213,41 +309,41 @@ class InventoryManagementApp:
                 )
             )
     
-    def cargar_producto_seleccionado(self, event):
+    def cargar_producto_seleccionado(self, evento):
         """Cargar datos del producto seleccionado en el formulario"""
-        selection = self.tree.selection()
-        if not selection:
+        seleccion = self.tree.selection()
+        if not seleccion:
             return
         
-        item = self.tree.item(selection[0])
-        id_producto = item['values'][0]
+        elemento = self.tree.item(seleccion[0])
+        id_producto = elemento['values'][0]
         
         producto = self.db.obtener_producto(id_producto)
         if producto:
             self.producto_seleccionado = id_producto
-            self.nombre_entry.delete(0, tk.END)
-            self.nombre_entry.insert(0, producto['nombre'])
+            self.nombre_entrada.delete(0, tk.END)
+            self.nombre_entrada.insert(0, producto['nombre'])
             
-            self.descripcion_text.delete('1.0', tk.END)
-            self.descripcion_text.insert('1.0', producto['descripcion'] if producto['descripcion'] else '')
+            self.descripcion_texto.delete('1.0', tk.END)
+            self.descripcion_texto.insert('1.0', producto['descripcion'] if producto['descripcion'] else '')
             
-            self.cantidad_entry.delete(0, tk.END)
-            self.cantidad_entry.insert(0, str(producto['cantidad']))
+            self.cantidad_entrada.delete(0, tk.END)
+            self.cantidad_entrada.insert(0, str(producto['cantidad']))
             
-            self.precio_entry.delete(0, tk.END)
-            self.precio_entry.insert(0, str(producto['precio_unitario']))
+            self.precio_entrada.delete(0, tk.END)
+            self.precio_entrada.insert(0, str(producto['precio_unitario']))
             
-            self.proveedor_entry.delete(0, tk.END)
-            self.proveedor_entry.insert(0, producto['proveedor'] if producto['proveedor'] else '')
+            self.proveedor_entrada.delete(0, tk.END)
+            self.proveedor_entrada.insert(0, producto['proveedor'] if producto['proveedor'] else '')
     
     def crear_producto(self):
         """Crear nuevo producto"""
         try:
-            nombre = self.nombre_entry.get()
-            descripcion = self.descripcion_text.get('1.0', tk.END).strip()
-            cantidad = int(self.cantidad_entry.get())
-            precio = float(self.precio_entry.get())
-            proveedor = self.proveedor_entry.get()
+            nombre = self.nombre_entrada.get()
+            descripcion = self.descripcion_texto.get('1.0', tk.END).strip()
+            cantidad = int(self.cantidad_entrada.get())
+            precio = float(self.precio_entrada.get())
+            proveedor = self.proveedor_entrada.get()
             
             if not nombre:
                 messagebox.showwarning("⚠️ Validación", "El nombre del producto es requerido")
@@ -257,14 +353,14 @@ class InventoryManagementApp:
                 messagebox.showwarning("⚠️ Validación", "Cantidad y Precio no pueden ser negativos")
                 return
             
-            success, msg = self.db.crear_producto(nombre, descripcion, cantidad, precio, proveedor)
-            if success:
+            exito, mensaje = self.db.crear_producto(nombre, descripcion, cantidad, precio, proveedor)
+            if exito:
                 messagebox.showinfo("✅ Éxito", f"Producto creado exitosamente:\n{nombre}")
                 self.limpiar_campos()
                 self.cargar_productos()
                 self.actualizar_estadisticas()
             else:
-                messagebox.showerror("❌ Error", msg)
+                messagebox.showerror("❌ Error", mensaje)
         except ValueError:
             messagebox.showerror("❌ Error de Validación", "Verifique que:\n• Cantidad sea un número entero\n• Precio sea un número decimal")
     
@@ -275,22 +371,22 @@ class InventoryManagementApp:
             return
         
         try:
-            nombre = self.nombre_entry.get()
-            descripcion = self.descripcion_text.get('1.0', tk.END).strip()
-            cantidad = int(self.cantidad_entry.get())
-            precio = float(self.precio_entry.get())
-            proveedor = self.proveedor_entry.get()
+            nombre = self.nombre_entrada.get()
+            descripcion = self.descripcion_texto.get('1.0', tk.END).strip()
+            cantidad = int(self.cantidad_entrada.get())
+            precio = float(self.precio_entrada.get())
+            proveedor = self.proveedor_entrada.get()
             
-            success, msg = self.db.actualizar_producto(
+            exito, mensaje = self.db.actualizar_producto(
                 self.producto_seleccionado, nombre, descripcion, cantidad, precio, proveedor
             )
-            if success:
-                messagebox.showinfo("✅ Éxito", msg)
+            if exito:
+                messagebox.showinfo("✅ Éxito", mensaje)
                 self.limpiar_campos()
                 self.cargar_productos()
                 self.actualizar_estadisticas()
             else:
-                messagebox.showerror("❌ Error", msg)
+                messagebox.showerror("❌ Error", mensaje)
         except ValueError:
             messagebox.showerror("❌ Error de Validación", "Cantidad debe ser número entero y Precio debe ser decimal")
     
@@ -301,22 +397,22 @@ class InventoryManagementApp:
             return
         
         if messagebox.askyesno("⚠️ Confirmación", "¿Está seguro que desea eliminar este producto?"):
-            success, msg = self.db.eliminar_producto(self.producto_seleccionado)
-            if success:
-                messagebox.showinfo("✅ Éxito", msg)
+            exito, mensaje = self.db.eliminar_producto(self.producto_seleccionado)
+            if exito:
+                messagebox.showinfo("✅ Éxito", mensaje)
                 self.limpiar_campos()
                 self.cargar_productos()
                 self.actualizar_estadisticas()
             else:
-                messagebox.showerror("❌ Error", msg)
+                messagebox.showerror("❌ Error", mensaje)
     
     def limpiar_campos(self):
         """Limpiar los campos del formulario"""
-        self.nombre_entry.delete(0, tk.END)
-        self.descripcion_text.delete('1.0', tk.END)
-        self.cantidad_entry.delete(0, tk.END)
-        self.precio_entry.delete(0, tk.END)
-        self.proveedor_entry.delete(0, tk.END)
+        self.nombre_entrada.delete(0, tk.END)
+        self.descripcion_texto.delete('1.0', tk.END)
+        self.cantidad_entrada.delete(0, tk.END)
+        self.precio_entrada.delete(0, tk.END)
+        self.proveedor_entrada.delete(0, tk.END)
         self.producto_seleccionado = None
         if self.tree.selection():
             self.tree.selection_remove(self.tree.selection())
@@ -324,32 +420,32 @@ class InventoryManagementApp:
     def registrar_movimiento(self):
         """Registrar movimiento de inventario"""
         try:
-            selection = self.tree.selection()
-            if not selection:
+            seleccion = self.tree.selection()
+            if not seleccion:
                 messagebox.showwarning("⚠️ Validación", "Seleccione un producto de la tabla")
                 return
             
-            item = self.tree.item(selection[0])
-            id_producto = item['values'][0]
+            elemento = self.tree.item(seleccion[0])
+            id_producto = elemento['values'][0]
             
-            tipo_valor = self.tipo_mov.get()
-            if not tipo_valor:
+            valor_tipo = self.tipo_movimiento.get()
+            if not valor_tipo:
                 messagebox.showwarning("⚠️ Validación", "Seleccione tipo de movimiento")
                 return
             
             # Extraer el tipo sin el emoji
-            tipo = tipo_valor.split(' ')[-1]
-            cantidad = int(self.mov_cantidad.get())
+            tipo = valor_tipo.split(' ')[-1]
+            cantidad = int(self.cantidad_movimiento.get())
             
-            success, msg = self.db.registrar_movimiento(id_producto, tipo, cantidad)
-            if success:
-                messagebox.showinfo("✅ Éxito", msg)
-                self.mov_cantidad.delete(0, tk.END)
-                self.tipo_mov.set('')
+            exito, mensaje = self.db.registrar_movimiento(id_producto, tipo, cantidad)
+            if exito:
+                messagebox.showinfo("✅ Éxito", mensaje)
+                self.cantidad_movimiento.delete(0, tk.END)
+                self.tipo_movimiento.set('')
                 self.cargar_productos()
                 self.actualizar_estadisticas()
             else:
-                messagebox.showerror("❌ Error", msg)
+                messagebox.showerror("❌ Error", mensaje)
         except ValueError:
             messagebox.showerror("❌ Error de Validación", "La cantidad debe ser un número entero")
     
@@ -370,20 +466,20 @@ class InventoryManagementApp:
     
     def actualizar_estadisticas(self):
         """Actualizar estadísticas mostradas con formato profesional"""
-        stats = self.db.obtener_estadisticas()
-        total_prod = stats.get('total_productos', 0)
-        stock_total = stats.get('stock_total', 0)
-        valor_total = stats.get('valor_total', 0)
-        bajo_stock = stats.get('bajo_stock', 0)
+        estadisticas = self.db.obtener_estadisticas()
+        total_productos = estadisticas.get('total_productos', 0)
+        stock_total = estadisticas.get('stock_total', 0)
+        valor_total = estadisticas.get('valor_total', 0)
+        bajo_stock = estadisticas.get('bajo_stock', 0)
         
         # Crear texto con emojis y formato profesional
         texto = (
-            f"  📊 Productos: {total_prod}  │  "
+            f"  📊 Productos: {total_productos}  │  "
             f"📦 Stock Total: {stock_total}  │  "
             f"💰 Valor Total: ${valor_total:.2f}  │  "
             f"⚠️ Bajo Stock: {bajo_stock}"
         )
-        self.stats_label.config(text=texto)
+        self.etiqueta_estadisticas.config(text=texto)
     
     def generar_reporte_inventario(self):
         """Generar reporte de inventario"""
@@ -392,11 +488,11 @@ class InventoryManagementApp:
             messagebox.showwarning("⚠️ Advertencia", "No hay productos registrados para generar reporte")
             return
         
-        success, msg = self.report_gen.generar_reporte_inventario(productos)
-        if success:
-            messagebox.showinfo("✅ Éxito", f"Reporte de inventario generado:\n{msg}")
+        exito, mensaje = self.gen_reportes.generar_reporte_inventario(productos)
+        if exito:
+            messagebox.showinfo("✅ Éxito", f"Reporte de inventario generado:\n{mensaje}")
         else:
-            messagebox.showerror("❌ Error", msg)
+            messagebox.showerror("❌ Error", mensaje)
     
     def generar_reporte_movimientos(self):
         """Generar reporte de movimientos"""
@@ -406,22 +502,22 @@ class InventoryManagementApp:
             return
         
         productos = self.db.obtener_productos()
-        productos_dict = {p['id']: p for p in productos}
+        dict_productos = {p['id']: p for p in productos}
         
-        success, msg = self.report_gen.generar_reporte_movimientos(movimientos, productos_dict)
-        if success:
-            messagebox.showinfo("✅ Éxito", f"Reporte de movimientos generado:\n{msg}")
+        exito, mensaje = self.gen_reportes.generar_reporte_movimientos(movimientos, dict_productos)
+        if exito:
+            messagebox.showinfo("✅ Éxito", f"Reporte de movimientos generado:\n{mensaje}")
         else:
-            messagebox.showerror("❌ Error", msg)
+            messagebox.showerror("❌ Error", mensaje)
     
     def generar_reporte_estadisticas(self):
         """Generar reporte de estadísticas"""
-        stats = self.db.obtener_estadisticas()
-        success, msg = self.report_gen.generar_reporte_estadisticas(stats)
-        if success:
-            messagebox.showinfo("✅ Éxito", f"Reporte de estadísticas generado:\n{msg}")
+        estadisticas = self.db.obtener_estadisticas()
+        exito, mensaje = self.gen_reportes.generar_reporte_estadisticas(estadisticas)
+        if exito:
+            messagebox.showinfo("✅ Éxito", f"Reporte de estadísticas generado:\n{mensaje}")
         else:
-            messagebox.showerror("❌ Error", msg)
+            messagebox.showerror("❌ Error", mensaje)
 
     def exportar_inventario_excel(self):
         try:
@@ -479,92 +575,118 @@ class InventoryManagementApp:
         win = tk.Toplevel(self.root)
         win.title("📈 Visualización de Estadísticas")
         win.geometry("1000x700")
+        """Abrir ventana con gráficos interactivos embebidos para análisis de datos"""
+        # Crear ventana hija
+        ventana = tk.Toplevel(self.root)
+        ventana.title("📈 Visualización de Estadísticas")
+        ventana.geometry("1000x700")
+        ventana.configure(bg=self.color_bg)
+
+        # Header de la ventana
+        encabezado = ttk.Label(ventana, text="📈 Análisis y Visualización de Datos", 
+                          style='Header.TLabel')
+        encabezado.pack(pady=12, padx=12, fill=tk.X)
 
         # Notebook para pestañas
-        notebook = ttk.Notebook(win)
-        notebook.pack(fill=tk.BOTH, expand=True)
+        cuaderno = ttk.Notebook(ventana)
+        cuaderno.pack(fill=tk.BOTH, expand=True, padx=12, pady=(0, 12))
 
         # Pestaña 1: Stock por producto (top 10)
-        tab1 = ttk.Frame(notebook)
-        notebook.add(tab1, text="Stock por Producto")
+        pestana1 = ttk.Frame(cuaderno)
+        cuaderno.add(pestana1, text="📦 Stock por Producto")
 
         productos = self.db.obtener_productos()
         # Ordenar por cantidad y tomar top 10
-        productos_sorted = sorted(productos, key=lambda p: p.get('cantidad', 0), reverse=True)
-        top = productos_sorted[:10]
-        labels = [p['nombre'] for p in top]
-        values = [p['cantidad'] for p in top]
+        productos_ordenados = sorted(productos, key=lambda p: p.get('cantidad', 0), reverse=True)
+        superior = productos_ordenados[:10]
+        etiquetas = [p['nombre'] for p in superior]
+        valores = [p['cantidad'] for p in superior]
 
-        fig1, ax1 = plt.subplots(figsize=(8, 4))
-        ax1.barh(labels[::-1], values[::-1], color='#2a9d8f')
-        ax1.set_title('Top 10 productos por cantidad')
-        ax1.set_xlabel('Cantidad')
+        fig1, ax1 = plt.subplots(figsize=(8, 4), facecolor=self.color_bg)
+        ax1.set_facecolor(self.color_surface)
+        ax1.barh(etiquetas[::-1], valores[::-1], color=self.color_secondary, edgecolor=self.color_border)
+        ax1.set_title('Top 10 productos por cantidad', fontsize=12, fontweight='bold', color=self.color_text, pad=15)
+        ax1.set_xlabel('Cantidad', fontsize=10, color=self.color_text)
+        ax1.tick_params(colors=self.color_text)
+        for spine in ax1.spines.values():
+            spine.set_edgecolor(self.color_border)
         fig1.tight_layout()
 
-        canvas1 = FigureCanvasTkAgg(fig1, master=tab1)
-        canvas1.draw()
-        canvas1.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        lienzo1 = FigureCanvasTkAgg(fig1, master=pestana1)
+        lienzo1.draw()
+        lienzo1.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
         # Pestaña 2: Distribución por proveedor (por stock total)
-        tab2 = ttk.Frame(notebook)
-        notebook.add(tab2, text="Distribución por Proveedor")
+        pestana2 = ttk.Frame(cuaderno)
+        cuaderno.add(pestana2, text="🏭 Distribución por Proveedor")
 
-        prov_stock = {}
+        stock_proveedor = {}
         for p in productos:
             prov = p.get('proveedor') or 'Sin proveedor'
-            prov_stock[prov] = prov_stock.get(prov, 0) + (p.get('cantidad') or 0)
+            stock_proveedor[prov] = stock_proveedor.get(prov, 0) + (p.get('cantidad') or 0)
 
-        provs = list(prov_stock.keys())
-        stocks = list(prov_stock.values())
+        proveedores = list(stock_proveedor.keys())
+        stocks = list(stock_proveedor.values())
 
-        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        fig2, ax2 = plt.subplots(figsize=(6, 6), facecolor=self.color_bg)
+        ax2.set_facecolor(self.color_surface)
+        colores = [self.color_primary, self.color_secondary, self.color_warning, '#8B5CF6', '#EC4899']
+        colores = (colores * ((len(proveedores) // len(colores)) + 1))[:len(proveedores)]
         if any(stocks):
-            ax2.pie(stocks, labels=provs, autopct='%1.1f%%', startangle=140)
-            ax2.set_title('Distribución del stock por proveedor')
+            ax2.pie(stocks, labels=proveedores, autopct='%1.1f%%', startangle=140, 
+                   colors=colores, textprops={'color': self.color_text})
+            ax2.set_title('Distribución del stock por proveedor', fontsize=12, fontweight='bold', 
+                         color=self.color_text, pad=15)
         else:
-            ax2.text(0.5, 0.5, 'No hay datos', ha='center', va='center')
+            ax2.text(0.5, 0.5, 'No hay datos', ha='center', va='center', color=self.color_text_muted)
         fig2.tight_layout()
 
-        canvas2 = FigureCanvasTkAgg(fig2, master=tab2)
-        canvas2.draw()
-        canvas2.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        lienzo2 = FigureCanvasTkAgg(fig2, master=pestana2)
+        lienzo2.draw()
+        lienzo2.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
         # Pestaña 3: Movimientos últimos 30 días (netos por día)
-        tab3 = ttk.Frame(notebook)
-        notebook.add(tab3, text="Movimientos (30 días)")
+        pestana3 = ttk.Frame(cuaderno)
+        cuaderno.add(pestana3, text="📈 Movimientos (30 días)")
 
         movimientos = self.db.obtener_movimientos()
-        today = datetime.now().date()
-        start_date = today - timedelta(days=29)
+        hoy = datetime.now().date()
+        fecha_inicio = hoy - timedelta(days=29)
 
         # Agregar neto por día
-        net_by_date = {}
-        for m in movimientos:
-            fecha = m.get('fecha')
+        neto_por_fecha = {}
+        for movimiento in movimientos:
+            fecha = movimiento.get('fecha')
             if not fecha:
                 continue
-            fecha_date = fecha.date()
-            if fecha_date < start_date or fecha_date > today:
+            fecha_convertida = fecha.date()
+            if fecha_convertida < fecha_inicio or fecha_convertida > hoy:
                 continue
-            tipo = (m.get('tipo_movimiento') or '').lower()
-            qty = int(m.get('cantidad') or 0)
-            net_by_date[fecha_date] = net_by_date.get(fecha_date, 0) + (qty if 'entrada' in tipo else -qty)
+            tipo = (movimiento.get('tipo_movimiento') or '').lower()
+            cantidad = int(movimiento.get('cantidad') or 0)
+            neto_por_fecha[fecha_convertida] = neto_por_fecha.get(fecha_convertida, 0) + (cantidad if 'entrada' in tipo else -cantidad)
 
         # Crear listas ordenadas por fecha
-        dates = [start_date + timedelta(days=i) for i in range(30)]
-        nets = [net_by_date.get(d, 0) for d in dates]
+        fechas = [fecha_inicio + timedelta(days=i) for i in range(30)]
+        netos = [neto_por_fecha.get(d, 0) for d in fechas]
 
-        fig3, ax3 = plt.subplots(figsize=(9, 3.5))
-        ax3.bar(dates, nets, color='#e76f51')
-        ax3.set_title('Movimiento neto por día (últimos 30 días)')
-        ax3.set_xlabel('Fecha')
-        ax3.set_ylabel('Cantidad neta')
+        fig3, ax3 = plt.subplots(figsize=(9, 3.5), facecolor=self.color_bg)
+        ax3.set_facecolor(self.color_surface)
+        ax3.bar(fechas, netos, color=self.color_primary, edgecolor=self.color_border)
+        ax3.set_title('Movimiento neto por día (últimos 30 días)', fontsize=12, fontweight='bold', 
+                     color=self.color_text, pad=15)
+        ax3.set_xlabel('Fecha', fontsize=10, color=self.color_text)
+        ax3.set_ylabel('Cantidad neta', fontsize=10, color=self.color_text)
+        ax3.tick_params(colors=self.color_text)
+        for spine in ax3.spines.values():
+            spine.set_edgecolor(self.color_border)
+        ax3.grid(axis='y', alpha=0.2, color=self.color_border)
         fig3.autofmt_xdate(rotation=45)
         fig3.tight_layout()
 
-        canvas3 = FigureCanvasTkAgg(fig3, master=tab3)
-        canvas3.draw()
-        canvas3.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        lienzo3 = FigureCanvasTkAgg(fig3, master=pestana3)
+        lienzo3.draw()
+        lienzo3.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=12, pady=12)
 
     def abrir_analizador_excel(self):
         """Abrir analizador de hojas Excel (módulo separado)."""
@@ -581,3 +703,4 @@ if __name__ == "__main__":
     app = InventoryManagementApp(root)
     root.protocol("WM_DELETE_WINDOW", app.cerrar)
     root.mainloop()
+

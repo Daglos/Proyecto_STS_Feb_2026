@@ -1,4 +1,4 @@
-# Sistema de Gestión de Inventario
+# Sistema de Gestión de Inventario - v2.0
 
 ## Descripción
 Sistema completo de gestión de inventario que permite el registro, edición, visualización, eliminación de productos y generación de reportes en PDF.
@@ -6,21 +6,49 @@ Sistema completo de gestión de inventario que permite el registro, edición, vi
 ## Características
 - ✅ **CRUD Completo**: Crear, Leer, Actualizar, Eliminar productos
 - ✅ **Base de Datos MySQL**: Almacenamiento persistente de datos
-- ✅ **Interfaz Gráfica**: Aplicación de escritorio con Tkinter
-- ✅ **Movimientos de Inventario**: Registro de entradas y salidas
+- ✅ **Interfaz Gráfica Moderna**: Diseño contemporáneo con Tkinter
+- ✅ **Movimientos de Inventario**: Registro detallado de entradas y salidas
 - ✅ **Reportes en PDF**: Estadísticas, inventario y movimientos
 - ✅ **Estadísticas en Tiempo Real**: Seguimiento de stock y valor
+- ✅ **Gráficos Interactivos**: Visualización de datos con Matplotlib (3 tipos)
+- ✅ **Análisis de Excel**: Herramienta para visualizar y analizar archivos Excel
+- ✅ **Arquitectura Modular**: Código limpio y mantenible
 
-## Estructura del Proyecto
+## Estructura Modular del Proyecto
+
 ```
-Proyecto_Seminario_Software/
-├── main.py              # Punto de entrada de la aplicación
-├── gui.py               # Interfaz gráfica (Tkinter)
-├── database.py          # Gestor de base de datos MySQL
-├── reports.py           # Generador de reportes en PDF
-├── config.py            # Configuración del proyecto
-├── requirements.txt     # Dependencias Python
-└── README.md           # Este archivo
+Proyecto_STS_Feb_2026/
+│
+├── main.py                          # Punto de entrada de la aplicación
+├── requirements.txt                 # Dependencias Python
+├── README.md                        # Documentación
+│
+├── src/                             # Paquete principal (NUEVO)
+│   ├── __init__.py
+│   │
+│   ├── config/                      # Configuración centralizada
+│   │   ├── __init__.py
+│   │   └── settings.py              # Constantes, paths y DB config
+│   │
+│   ├── core/                        # Lógica de base de datos
+│   │   ├── __init__.py
+│   │   └── database.py              # DatabaseManager (CRUD)
+│   │
+│   ├── ui/                          # Interfaz gráfica
+│   │   ├── __init__.py
+│   │   ├── main_window.py           # InventoryManagementApp
+│   │   └── styles.py                # Estilos y tema ttk
+│   │
+│   ├── reports/                     # Generación de reportes
+│   │   ├── __init__.py
+│   │   └── generator.py             # ReportGenerator (PDF)
+│   │
+│   └── utils/                       # Utilidades
+│       ├── __init__.py
+│       └── excel_analyzer.py        # Análisis de Excel
+│
+├── reportes/                        # Carpeta para PDFs generados
+└── __pycache__/                     # Cache Python
 ```
 
 ## Requisitos Previos
@@ -51,26 +79,25 @@ pip install -r requirements.txt
 
 ### 4. Configurar Base de Datos
 
-Primero, asegúrate de que MySQL Server está ejecutándose.
-
-Abre el archivo `config.py` y actualiza las credenciales:
+Abre el archivo `src/config/settings.py` y actualiza las credenciales MySQL:
 ```python
 DB_CONFIG = {
     'host': 'localhost',
+    'port': 3306,
     'user': 'root',           # Tu usuario de MySQL
-    'password': 'tu_contraseña',  # Tu contraseña de MySQL
+    'password': '12345678',   # Tu contraseña de MySQL
     'database': 'inventory_management',
     'raise_on_warnings': True
 }
 ```
 
-Luego, crea la base de datos en MySQL:
+Luego, crea la base de datos en MySQL (opcional - se crea automáticamente):
 ```bash
 mysql -u root -p
 ```
 
 ```sql
-CREATE DATABASE inventory_management;
+CREATE DATABASE inventory_management CHARACTER SET utf8mb4;
 EXIT;
 ```
 
@@ -94,16 +121,25 @@ python main.py
 - Actualización automática de stock
 - Historial de movimientos
 
-### 3. Reportes
-- **Reporte de Inventario**: Listado completo de productos en PDF
-- **Reporte de Movimientos**: Historial de movimientos de inventario
-- **Reporte de Estadísticas**: Resumen con totales y métricas
+### 3. Reportes y Gráficos
+- **Reporte de Inventario**: PDF con listado completo de productos
+- **Reporte de Movimientos**: PDF con historial de entradas/salidas  
+- **Reporte de Estadísticas**: PDF con resumen y métricas
+- **Gráficos Interactivos**: 
+  - 📦 Stock por Producto (Top 10 productos)
+  - 🏭 Distribución por Proveedor (Gráfico de pastel)
+  - 📈 Movimientos (últimos 30 días)
 
-### 4. Estadísticas en Tiempo Real
-- Total de productos
-- Stock total del inventario
+### 4. Análisis Excel
+- Cargar archivos Excel (.xlsx, .xls)
+- Visualizar datos en tabla
+- Generar gráficos dinámicos (Línea, Barra, Dispersión, Pastel)
+
+### 5. Estadísticas en Tiempo Real
+- Total de productos en inventario
+- Stock total en unidades
 - Valor total del inventario
-- Cantidad de productos con stock bajo (< 10)
+- Cantidad de productos con stock bajo
 
 ## Base de Datos
 
@@ -138,8 +174,12 @@ CREATE TABLE movimientos (
 
 ### Error: "No se pudo conectar a la base de datos"
 - Verifica que MySQL Server está ejecutándose
-- Comprueba las credenciales en `config.py`
+- Comprueba las credenciales en `src/config/settings.py`
 - Confirma que la base de datos `inventory_management` existe
+
+### Error: "ModuleNotFoundError: No module named 'src'"
+- Asegúrate de ejecutar desde la carpeta raíz del proyecto
+- Python debe ser ejecutado desde c:\Users\janie\Proyecto_STS_Feb_2026\
 
 ### Error: "No module named 'mysql'"
 ```bash
@@ -147,8 +187,14 @@ pip install mysql-connector-python
 ```
 
 ### Los reportes no se generan
-- Verifica que existe la carpeta `reportes/` o déjala que se cree automáticamente
+- Verifica que existe la carpeta `reportes/` (se crea automáticamente)
 - Comprueba permisos de escritura en el directorio del proyecto
+- Revisa `src/config/settings.py` - REPORTS_PATH
+
+### La aplicación se cierra al abrir
+- Revisa los logs en la consola para mensajes de error
+- Verifica que todas las dependencias estén instaladas
+- Comprueba la conexión MySQL
 
 ## Contribuciones
 Las contribuciones son bienvenidas. Para cambios importantes, abre un issue primero.
