@@ -15,10 +15,10 @@ class DatabaseManager:
         try:
             self.connection = mysql.connector.connect(**DB_CONFIG)
             self.cursor = self.connection.cursor(dictionary=True)
-            print("Conexión exitosa a la base de datos")
+            print("[OK] Conexion exitosa a la base de datos")
             return True
         except Error as err:
-            print(f"Error de conexión: {err}")
+            print(f"[ERROR] Error de conexion: {err}")
             return False
     
     def disconnect(self):
@@ -26,7 +26,7 @@ class DatabaseManager:
         if self.connection and self.connection.is_connected():
             self.cursor.close()
             self.connection.close()
-            print("Conexión cerrada")
+            print("[OK] Conexion cerrada")
     
     def create_tables(self):
         """Crear las tablas necesarias (o resetearlas si ya existen)"""
@@ -59,15 +59,15 @@ class DatabaseManager:
             """)
             
             self.connection.commit()
-            print("✅ Tablas creadas/verificadas exitosamente")
+            print("[OK] Tablas creadas/verificadas exitosamente")
             return True
         except Error as err:
             # Si el error es que las tablas ya existen, no es un problema
             if "already exists" in str(err):
-                print("✅ Las tablas ya existen, usando las existentes")
+                print("[OK] Las tablas ya existen, usando las existentes")
                 return True
             else:
-                print(f"❌ Error al crear tablas: {err}")
+                print(f"[ERROR] Error al crear tablas: {err}")
                 return False
     
     # CRUD de Productos

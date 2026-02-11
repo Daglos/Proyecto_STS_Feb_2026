@@ -2,7 +2,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from database import DatabaseManager
 from reports import ReportGenerator
-from datetime import datetime
+from datetime import datetime, timedelta
+
+import matplotlib
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
+from excel_analysis import ExcelAnalyzer
 
 class InventoryManagementApp:
     """Aplicación de gestión de inventario con interfaz Tkinter"""
@@ -50,6 +55,8 @@ class InventoryManagementApp:
         reportes_menu.add_command(label="Inventario", command=self.generar_reporte_inventario)
         reportes_menu.add_command(label="Movimientos", command=self.generar_reporte_movimientos)
         reportes_menu.add_command(label="Estadísticas", command=self.generar_reporte_estadisticas)
+        reportes_menu.add_command(label="Ver Gráficos", command=self.abrir_ventana_graficos)
+        reportes_menu.add_command(label="Analizar Excel", command=self.abrir_analizador_excel)
         
         ayuda_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="❓ Ayuda", menu=ayuda_menu)
@@ -408,6 +415,104 @@ class InventoryManagementApp:
             messagebox.showinfo("✅ Éxito", f"Reporte de estadísticas generado:\n{msg}")
         else:
             messagebox.showerror("❌ Error", msg)
+
+    def abrir_ventana_graficos(self):
+        """Abrir ventana con gráficos interactivos embebidos para análisis de datos"""
+        # Crear ventana hija
+        win = tk.Toplevel(self.root)
+        win.title("📈 Visualización de Estadísticas")
+        win.geometry("1000x700")
+
+        # Notebook para pestañas
+        notebook = ttk.Notebook(win)
+        notebook.pack(fill=tk.BOTH, expand=True)
+
+        # Pestaña 1: Stock por producto (top 10)
+        tab1 = ttk.Frame(notebook)
+        notebook.add(tab1, text="Stock por Producto")
+
+        productos = self.db.obtener_productos()
+        # Ordenar por cantidad y tomar top 10
+        productos_sorted = sorted(productos, key=lambda p: p.get('cantidad', 0), reverse=True)
+        top = productos_sorted[:10]
+        labels = [p['nombre'] for p in top]
+        values = [p['cantidad'] for p in top]
+
+        fig1, ax1 = plt.subplots(figsize=(8, 4))
+        ax1.barh(labels[::-1], values[::-1], color='#2a9d8f')
+        ax1.set_title('Top 10 productos por cantidad')
+        ax1.set_xlabel('Cantidad')
+        fig1.tight_layout()
+
+        canvas1 = FigureCanvasTkAgg(fig1, master=tab1)
+        canvas1.draw()
+        canvas1.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Pestaña 2: Distribución por proveedor (por stock total)
+        tab2 = ttk.Frame(notebook)
+        notebook.add(tab2, text="Distribución por Proveedor")
+
+        prov_stock = {}
+        for p in productos:
+            prov = p.get('proveedor') or 'Sin proveedor'
+            prov_stock[prov] = prov_stock.get(prov, 0) + (p.get('cantidad') or 0)
+
+        provs = list(prov_stock.keys())
+        stocks = list(prov_stock.values())
+
+        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        if any(stocks):
+            ax2.pie(stocks, labels=provs, autopct='%1.1f%%', startangle=140)
+            ax2.set_title('Distribución del stock por proveedor')
+        else:
+            ax2.text(0.5, 0.5, 'No hay datos', ha='center', va='center')
+        fig2.tight_layout()
+
+        canvas2 = FigureCanvasTkAgg(fig2, master=tab2)
+        canvas2.draw()
+        canvas2.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+        # Pestaña 3: Movimientos últimos 30 días (netos por día)
+        tab3 = ttk.Frame(notebook)
+        notebook.add(tab3, text="Movimientos (30 días)")
+
+        movimientos = self.db.obtener_movimientos()
+        today = datetime.now().date()
+        start_date = today - timedelta(days=29)
+
+        # Agregar neto por día
+        net_by_date = {}
+        for m in movimientos:
+            fecha = m.get('fecha')
+            if not fecha:
+                continue
+            fecha_date = fecha.date()
+            if fecha_date < start_date or fecha_date > today:
+                continue
+            tipo = (m.get('tipo_movimiento') or '').lower()
+            qty = int(m.get('cantidad') or 0)
+            net_by_date[fecha_date] = net_by_date.get(fecha_date, 0) + (qty if 'entrada' in tipo else -qty)
+
+        # Crear listas ordenadas por fecha
+        dates = [start_date + timedelta(days=i) for i in range(30)]
+        nets = [net_by_date.get(d, 0) for d in dates]
+
+        fig3, ax3 = plt.subplots(figsize=(9, 3.5))
+        ax3.bar(dates, nets, color='#e76f51')
+        ax3.set_title('Movimiento neto por día (últimos 30 días)')
+        ax3.set_xlabel('Fecha')
+        ax3.set_ylabel('Cantidad neta')
+        fig3.autofmt_xdate(rotation=45)
+        fig3.tight_layout()
+
+        canvas3 = FigureCanvasTkAgg(fig3, master=tab3)
+        canvas3.draw()
+        canvas3.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def abrir_analizador_excel(self):
+        """Abrir analizador de hojas Excel (módulo separado)."""
+        analyzer = ExcelAnalyzer(self.root)
+        analyzer.open_window()
     
     def cerrar(self):
         """Cerrar la aplicación"""
