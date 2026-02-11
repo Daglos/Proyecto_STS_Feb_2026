@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from database import DatabaseManager
 from reports import ReportGenerator
+from export_excel import ExcelExporter
 from datetime import datetime, timedelta
 
 import matplotlib
@@ -22,6 +23,7 @@ class InventoryManagementApp:
         # Inicializar base de datos
         self.db = DatabaseManager()
         self.report_gen = ReportGenerator()
+        self.excel_exporter = ExcelExporter()
         
         if not self.db.connect():
             messagebox.showerror("Error", "No se pudo conectar a la base de datos")
@@ -55,6 +57,11 @@ class InventoryManagementApp:
         reportes_menu.add_command(label="Inventario", command=self.generar_reporte_inventario)
         reportes_menu.add_command(label="Movimientos", command=self.generar_reporte_movimientos)
         reportes_menu.add_command(label="Estadísticas", command=self.generar_reporte_estadisticas)
+        reportes_menu.add_separator()
+        reportes_menu.add_command(label="📥 Exportar Inventario (Excel)", command=self.exportar_inventario_excel)
+        reportes_menu.add_command(label="📥 Exportar Movimientos (Excel)", command=self.exportar_movimientos_excel)
+        reportes_menu.add_command(label="📥 Exportar Todo (Excel)", command=self.exportar_completo_excel)
+        reportes_menu.add_separator()
         reportes_menu.add_command(label="Ver Gráficos", command=self.abrir_ventana_graficos)
         reportes_menu.add_command(label="Analizar Excel", command=self.abrir_analizador_excel)
         
@@ -416,9 +423,59 @@ class InventoryManagementApp:
         else:
             messagebox.showerror("❌ Error", msg)
 
+    def exportar_inventario_excel(self):
+        try:
+            productos = self.db.obtener_productos()
+            if not productos:
+                messagebox.showwarning("⚠️ Advertencia", "No hay productos para exportar")
+                return
+            
+            success, resultado = self.excel_exporter.exportar_inventario(productos)
+            if success:
+                messagebox.showinfo("✅ Éxito", f"Inventario exportado correctamente:\n{resultado}")
+            else:
+                messagebox.showerror("❌ Error", resultado)
+        except Exception as err:
+            messagebox.showerror("❌ Error", f"Error al exportar inventario: {str(err)}")
+    
+    def exportar_movimientos_excel(self):
+        try:
+            movimientos = self.db.obtener_movimientos()
+            if not movimientos:
+                messagebox.showwarning("⚠️ Advertencia", "No hay movimientos para exportar")
+                return
+            
+            productos = self.db.obtener_productos()
+            productos_dict = {p['id']: p for p in productos}
+            
+            success, resultado = self.excel_exporter.exportar_movimientos(movimientos, productos_dict)
+            if success:
+                messagebox.showinfo("✅ Éxito", f"Movimientos exportados correctamente:\n{resultado}")
+            else:
+                messagebox.showerror("❌ Error", resultado)
+        except Exception as err:
+            messagebox.showerror("❌ Error", f"Error al exportar movimientos: {str(err)}")
+    
+    def exportar_completo_excel(self):
+        try:
+            productos = self.db.obtener_productos()
+            movimientos = self.db.obtener_movimientos()
+            
+            if not productos and not movimientos:
+                messagebox.showwarning("⚠️ Advertencia", "No hay datos para exportar")
+                return
+            
+            productos_dict = {p['id']: p for p in productos}
+            
+            success, resultado = self.excel_exporter.exportar_completo(productos, movimientos, productos_dict)
+            if success:
+                messagebox.showinfo("✅ Éxito", f"Datos completos exportados correctamente:\n{resultado}")
+            else:
+                messagebox.showerror("❌ Error", resultado)
+        except Exception as err:
+            messagebox.showerror("❌ Error", f"Error al exportar datos: {str(err)}")
+
     def abrir_ventana_graficos(self):
-        """Abrir ventana con gráficos interactivos embebidos para análisis de datos"""
-        # Crear ventana hija
         win = tk.Toplevel(self.root)
         win.title("📈 Visualización de Estadísticas")
         win.geometry("1000x700")
